@@ -7,6 +7,7 @@
 
 #include <SLES/OpenSLES.h>
 #include <stdio.h>
+#include <string.h>
 #include <SLES/OpenSLES_Android.h>
 #include "AudioEngine.h"
 

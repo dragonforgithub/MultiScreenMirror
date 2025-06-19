@@ -13,42 +13,42 @@ import android.widget.Toast;
 
 public class SelectActivity extends Activity {
 
-	private static final String TAG = "SelectActivity";
+    private static final String TAG = "SelectActivity";
 
-	@Override
-	protected void onCreate(Bundle arg0) {
-		super.onCreate(arg0);
-		setContentView(R.layout.activity_select);
+    @Override
+    protected void onCreate(Bundle arg0) {
+        super.onCreate(arg0);
+        setContentView(R.layout.activity_select);
 
-		Button btReceiver = findViewById(R.id.bt_receiver);
-		Button btSend = findViewById(R.id.bt_send);
-		
-		btReceiver.setOnClickListener(new OnClickListener() {
+        Button btReceiver = findViewById(R.id.bt_receiver);
+        Button btSend = findViewById(R.id.bt_send);
+        
+        btReceiver.setOnClickListener(new OnClickListener() {
 
-			@Override
-			public void onClick(View view) {
-				SendServer mServer = SendServer.getInstance();
-				if (mServer != null && mServer.hasConnect()) {
-					Toast.makeText(getApplicationContext(), "Currently in TX mode !", Toast.LENGTH_SHORT).show();
-					return;
-				}
-				startActivity(new Intent(SelectActivity.this, ReceiverActivity.class));
-			}
-		});
+            @Override
+            public void onClick(View view) {
+                SendServer mServer = SendServer.getInstance();
+                if (mServer != null && mServer.hasConnect()) {
+                    Toast.makeText(getApplicationContext(), "Currently in TX mode !", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                startActivity(new Intent(SelectActivity.this, ReceiverActivity.class));
+            }
+        });
 
-		btSend.setOnClickListener(new OnClickListener() {
+        btSend.setOnClickListener(new OnClickListener() {
 
-			@Override
-			public void onClick(View view) {
-				startActivity(new Intent(SelectActivity.this, SendActivity.class));
-			}
-		});
-	}
-	
-	@Override
-	protected void onResume() {
-		super.onResume();
-		
-	}
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(SelectActivity.this, SendActivity.class));
+            }
+        });
+    }
+    
+    @Override
+    protected void onResume() {
+        super.onResume();
+        
+    }
 
 }

@@ -10,23 +10,23 @@ import android.content.pm.PackageManager;
 
 public class VersionNumberUtils {
 
-	public static String getVersion(Context context) {
-		try {
-			StringBuilder builder = new StringBuilder();
-			builder.append("Version: ");
-			PackageManager manager = context.getPackageManager();
-			PackageInfo info = manager.getPackageInfo(context.getPackageName(),
-					0);
-			String versionName = info.versionName;
-			int versionCode = info.versionCode;
-			builder.append(versionName);
-			builder.append(".");
-			builder.append(versionCode);
-			return builder.toString();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return "null";
-	}
+    public static String getVersion(Context context) {
+        try {
+            StringBuilder builder = new StringBuilder();
+            builder.append("Version: ");
+            PackageManager manager = context.getPackageManager();
+            PackageInfo info = manager.getPackageInfo(context.getPackageName(),
+                    0);
+            String versionName = info.versionName;
+            int versionCode = info.versionCode;
+            builder.append(versionName);
+            builder.append(".");
+            builder.append(versionCode);
+            return builder.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "null";
+    }
 
 }

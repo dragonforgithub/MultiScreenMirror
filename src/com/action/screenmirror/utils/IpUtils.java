@@ -22,115 +22,115 @@ import java.util.Collections;
 import java.util.Enumeration;
 
 public class IpUtils {
-	
-	public static final int IP_TYPE_NORMAL = 0;
-	public static final int IP_TYPE_IPV4 = 1;
-	public static final int IP_TYPE_IPV6 = 2;
-	public static final int IP_TYPE_IPV46 = 3;
 
-	public static String getIpAddress(Context context) {
-		ConnectivityManager conMann = (ConnectivityManager) context
-				.getSystemService(Context.CONNECTIVITY_SERVICE);
-		WifiManager wifiManager = (WifiManager) context
-				.getSystemService(Context.WIFI_SERVICE);
-		String ip = null;
+    public static final int IP_TYPE_NORMAL = 0;
+    public static final int IP_TYPE_IPV4 = 1;
+    public static final int IP_TYPE_IPV6 = 2;
+    public static final int IP_TYPE_IPV46 = 3;
 
-		NetworkInfo mobileNetworkInfo = conMann
-				.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
-		NetworkInfo wifiNetworkInfo = conMann
-				.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+    public static String getIpAddress(Context context) {
+        ConnectivityManager conMann = (ConnectivityManager) context
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        WifiManager wifiManager = (WifiManager) context
+                .getSystemService(Context.WIFI_SERVICE);
+        String ip = null;
 
-		if (mobileNetworkInfo != null && mobileNetworkInfo.isConnected()) {
-			ip = getLocalIpAddress();
-		} else if (wifiNetworkInfo != null && wifiNetworkInfo.isConnected()) {
+        NetworkInfo mobileNetworkInfo = conMann
+                .getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+        NetworkInfo wifiNetworkInfo = conMann
+                .getNetworkInfo(ConnectivityManager.TYPE_WIFI);
 
-			WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-			int ipAddress = wifiInfo.getIpAddress();
-			ip = intToIp(ipAddress);
-		}
+        if (mobileNetworkInfo != null && mobileNetworkInfo.isConnected()) {
+            ip = getLocalIpAddress();
+        } else if (wifiNetworkInfo != null && wifiNetworkInfo.isConnected()) {
 
-		return ip;
-	}
+            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+            int ipAddress = wifiInfo.getIpAddress();
+            ip = intToIp(ipAddress);
+        }
 
-	public static String getHostIP() {
+        return ip;
+    }
 
-		String hostIp = null;
-		try {
-			Enumeration nis = NetworkInterface.getNetworkInterfaces();
-			InetAddress ia = null;
-			while (nis.hasMoreElements()) {
-				NetworkInterface ni = (NetworkInterface) nis.nextElement();
-				Enumeration<InetAddress> ias = ni.getInetAddresses();
-				while (ias.hasMoreElements()) {
-					ia = ias.nextElement();
-					if (ia instanceof Inet6Address) {
-						continue;// skip ipv6
-					}
-					String ip = ia.getHostAddress();
-					if (!"127.0.0.1".equals(ip)) {
-						hostIp = ia.getHostAddress();
-						break;
-					}
-				}
-			}
-		} catch (SocketException e) {
-			LogUtils.i("yao", "SocketException");
-			e.printStackTrace();
-		}
-		return hostIp;
+    public static String getHostIP() {
 
-	}
+        String hostIp = null;
+        try {
+            Enumeration nis = NetworkInterface.getNetworkInterfaces();
+            InetAddress ia = null;
+            while (nis.hasMoreElements()) {
+                NetworkInterface ni = (NetworkInterface) nis.nextElement();
+                Enumeration<InetAddress> ias = ni.getInetAddresses();
+                while (ias.hasMoreElements()) {
+                    ia = ias.nextElement();
+                    if (ia instanceof Inet6Address) {
+                        continue;// skip ipv6
+                    }
+                    String ip = ia.getHostAddress();
+                    if (!"127.0.0.1".equals(ip)) {
+                        hostIp = ia.getHostAddress();
+                        break;
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            LogUtils.i("yao", "SocketException");
+            e.printStackTrace();
+        }
+        return hostIp;
 
-	public static String getLocalIpAddress() {
-		try {
-			String ipv4;
-			ArrayList<NetworkInterface> nilist = Collections
-					.list(NetworkInterface.getNetworkInterfaces());
-			for (NetworkInterface ni : nilist) {
-				ArrayList<InetAddress> ialist = Collections.list(ni
-						.getInetAddresses());
-				for (InetAddress address : ialist) {
-					if ((!address.isLoopbackAddress())
-							&& (address instanceof Inet4Address)) {
-						return address.getHostAddress();
-					}
-				}
+    }
 
-			}
+    public static String getLocalIpAddress() {
+        try {
+            String ipv4;
+            ArrayList<NetworkInterface> nilist = Collections
+                    .list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface ni : nilist) {
+                ArrayList<InetAddress> ialist = Collections.list(ni
+                        .getInetAddresses());
+                for (InetAddress address : ialist) {
+                    if ((!address.isLoopbackAddress())
+                            && (address instanceof Inet4Address)) {
+                        return address.getHostAddress();
+                    }
+                }
 
-		} catch (SocketException ex) {
-			LogUtils.e("localip", ex.toString());
-		}
-		return null;
-	}
+            }
 
-	public static String intToIp(int ipInt) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(ipInt & 0xFF).append(".");
-		sb.append((ipInt >> 8) & 0xFF).append(".");
-		sb.append((ipInt >> 16) & 0xFF).append(".");
-		sb.append((ipInt >> 24) & 0xFF);
-		return sb.toString();
-	}
+        } catch (SocketException ex) {
+            LogUtils.e("localip", ex.toString());
+        }
+        return null;
+    }
 
-	public static InetAddress getBroadcastAddress(Context context)
-			throws UnknownHostException {
-		WifiManager wifi = (WifiManager) context
-				.getSystemService(Context.WIFI_SERVICE);
-		DhcpInfo dhcp = wifi.getDhcpInfo();
-		if (dhcp == null) {
-			return InetAddress.getByName("255.255.255.255");
-		}
-		String hostIP = getHostIP();
-		if (hostIP != null && !hostIP.equals("")) {
-			String substring = hostIP.substring(0, hostIP.lastIndexOf(".") + 1);
-			LogUtils.i("123", "hdb------substring:" + substring);
-			return InetAddress.getByName(substring + "255");
-		}
-		return null;
-	}
-	
-	public static InetAddress getLocalIp() {
+    public static String intToIp(int ipInt) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(ipInt & 0xFF).append(".");
+        sb.append((ipInt >> 8) & 0xFF).append(".");
+        sb.append((ipInt >> 16) & 0xFF).append(".");
+        sb.append((ipInt >> 24) & 0xFF);
+        return sb.toString();
+    }
+
+    public static InetAddress getBroadcastAddress(Context context)
+            throws UnknownHostException {
+        WifiManager wifi = (WifiManager) context
+                .getSystemService(Context.WIFI_SERVICE);
+        DhcpInfo dhcp = wifi.getDhcpInfo();
+        if (dhcp == null) {
+            return InetAddress.getByName("255.255.255.255");
+        }
+        String hostIP = getHostIP();
+        if (hostIP != null && !hostIP.equals("")) {
+            String substring = hostIP.substring(0, hostIP.lastIndexOf(".") + 1);
+            LogUtils.i("123", "hdb------substring:" + substring);
+            return InetAddress.getByName(substring + "255");
+        }
+        return null;
+    }
+    
+    public static InetAddress getLocalIp() {
         try {
             for (Enumeration<NetworkInterface> en = NetworkInterface
                     .getNetworkInterfaces(); en.hasMoreElements(); ) {
@@ -141,16 +141,16 @@ public class IpUtils {
                     String hostAddress = inetAddress.getHostAddress();
                     LogUtils.i("hdb2  " + hostAddress);
                     if (inetAddress instanceof Inet6Address) {//ipv6
-						if (!hostAddress.startsWith("fe") && !hostAddress.startsWith("fc") && hostAddress.length() > 6) {
-							LogUtils.i("hdb2---ipv6:" + hostAddress);
-							return inetAddress;
-						}
-					}else {//ipv4
-						if (!"127.0.0.1".equalsIgnoreCase(hostAddress)) {
-							LogUtils.i("hdb2---ipv4:" + hostAddress);
-							return inetAddress;
-						}
-					}
+                        if (!hostAddress.startsWith("fe") && !hostAddress.startsWith("fc") && hostAddress.length() > 6) {
+                            LogUtils.i("hdb2---ipv6:" + hostAddress);
+                            return inetAddress;
+                        }
+                    }else {//ipv4
+                        if (!"127.0.0.1".equalsIgnoreCase(hostAddress)) {
+                            LogUtils.i("hdb2---ipv4:" + hostAddress);
+                            return inetAddress;
+                        }
+                    }
                 }
             }
         } catch (Exception ex) {
@@ -158,10 +158,10 @@ public class IpUtils {
         }
         return null;
     }
-	
-	
-	public static ArrayList<InetAddress> getLocalIp4List() {
-		ArrayList<InetAddress> addrList = new ArrayList<InetAddress>();
+    
+    
+    public static ArrayList<InetAddress> getLocalIp4List() {
+        ArrayList<InetAddress> addrList = new ArrayList<InetAddress>();
         try {
             for (Enumeration<NetworkInterface> en = NetworkInterface
                     .getNetworkInterfaces(); en.hasMoreElements(); ) {
@@ -172,12 +172,12 @@ public class IpUtils {
                     String hostAddress = inetAddress.getHostAddress();
                     LogUtils.i("hdb2  " + hostAddress);
                     if (inetAddress instanceof Inet4Address) {{//ipv4
-						if (!"127.0.0.1".equalsIgnoreCase(hostAddress)) {
-							LogUtils.i("hdb2---ipv4:" + hostAddress);
-							addrList.add(inetAddress);
-							//return inetAddress;
-						}
-					}
+                        if (!"127.0.0.1".equalsIgnoreCase(hostAddress)) {
+                            LogUtils.i("hdb2---ipv4:" + hostAddress);
+                            addrList.add(inetAddress);
+                            //return inetAddress;
+                        }
+                    }
                 }
             }
            }
@@ -186,8 +186,8 @@ public class IpUtils {
         }
         return addrList;
     }
-	public static ArrayList<InetAddress> getLocalIp6List() {
-		ArrayList<InetAddress> addrList = new ArrayList<InetAddress>();
+    public static ArrayList<InetAddress> getLocalIp6List() {
+        ArrayList<InetAddress> addrList = new ArrayList<InetAddress>();
         try {
             for (Enumeration<NetworkInterface> en = NetworkInterface
                     .getNetworkInterfaces(); en.hasMoreElements(); ) {
@@ -198,12 +198,12 @@ public class IpUtils {
                     String hostAddress = inetAddress.getHostAddress();
                     LogUtils.i("hdb2  " + hostAddress);
                     if (inetAddress instanceof Inet6Address) {//ipv6
-						if (!hostAddress.startsWith("fe") && !hostAddress.startsWith("fc") && hostAddress.length() > 6) {
-							LogUtils.i("hdb2---ipv6:" + hostAddress);
-							addrList.add(inetAddress);
-							//return inetAddress;
-						}
-					}
+                        if (!hostAddress.startsWith("fe") && !hostAddress.startsWith("fc") && hostAddress.length() > 6) {
+                            LogUtils.i("hdb2---ipv6:" + hostAddress);
+                            addrList.add(inetAddress);
+                            //return inetAddress;
+                        }
+                    }
                 }
             }
         } catch (Exception ex) {
@@ -211,9 +211,9 @@ public class IpUtils {
         }
         return addrList;
     }
-	
-	public static int getLocalIpType() {
-		int ipType = IP_TYPE_NORMAL;
+    
+    public static int getLocalIpType() {
+        int ipType = IP_TYPE_NORMAL;
         try {
             for (Enumeration<NetworkInterface> en = NetworkInterface
                     .getNetworkInterfaces(); en.hasMoreElements(); ) {
@@ -224,16 +224,16 @@ public class IpUtils {
                     String hostAddress = inetAddress.getHostAddress();
                     Log.i("","hdb2  " + hostAddress);
                     if (inetAddress instanceof Inet6Address) {//ipv6
-						if (!hostAddress.startsWith("fe") && !hostAddress.startsWith("fc") && hostAddress.length() > 6) {
-							LogUtils.i("hdb2---ipv6:" + hostAddress);
-							ipType |= IP_TYPE_IPV6;
-						}
-					}else {//ipv4
-						if (!"127.0.0.1".equalsIgnoreCase(hostAddress)) {
-							LogUtils.i("hdb2---ipv4:" + hostAddress);
-							ipType |= IP_TYPE_IPV4;
-						}
-					}
+                        if (!hostAddress.startsWith("fe") && !hostAddress.startsWith("fc") && hostAddress.length() > 6) {
+                            LogUtils.i("hdb2---ipv6:" + hostAddress);
+                            ipType |= IP_TYPE_IPV6;
+                        }
+                    }else {//ipv4
+                        if (!"127.0.0.1".equalsIgnoreCase(hostAddress)) {
+                            LogUtils.i("hdb2---ipv4:" + hostAddress);
+                            ipType |= IP_TYPE_IPV4;
+                        }
+                    }
                 }
             }
         } catch (Exception ex) {
@@ -243,32 +243,32 @@ public class IpUtils {
         return ipType;
     }
 
-	public static InetAddress getBroadcastAddress() throws IOException {
-		// 鑾峰彇鏈湴鎵�鏈夌綉缁滄帴鍙�
-		Enumeration<NetworkInterface> interfaces = NetworkInterface
-				.getNetworkInterfaces();
-		while (interfaces.hasMoreElements()) {
-			NetworkInterface networkInterface = interfaces.nextElement();
-			if (networkInterface.isLoopback() || !networkInterface.isUp()) {
-				continue;
-			}
-			// getInterfaceAddresses()鏂规硶杩斿洖缁戝畾鍒拌缃戠粶鎺ュ彛鐨勬墍鏈� IP 鐨勯泦鍚�
-			for (InterfaceAddress interfaceAddress : networkInterface
-					.getInterfaceAddresses()) {
+    public static InetAddress getBroadcastAddress() throws IOException {
+        // 鑾峰彇鏈湴鎵�鏈夌綉缁滄帴鍙�
+        Enumeration<NetworkInterface> interfaces = NetworkInterface
+                .getNetworkInterfaces();
+        while (interfaces.hasMoreElements()) {
+            NetworkInterface networkInterface = interfaces.nextElement();
+            if (networkInterface.isLoopback() || !networkInterface.isUp()) {
+                continue;
+            }
+            // getInterfaceAddresses()鏂规硶杩斿洖缁戝畾鍒拌缃戠粶鎺ュ彛鐨勬墍鏈� IP 鐨勯泦鍚�
+            for (InterfaceAddress interfaceAddress : networkInterface
+                    .getInterfaceAddresses()) {
 
-				InetAddress broadcast = interfaceAddress.getBroadcast();
-				if (broadcast == null) {
-					continue;
-				}
-				return broadcast;
-			}
-		}
-		return null;
-	}
-	
-	public static NetworkInterface getIpv6NetworkInterface() {
+                InetAddress broadcast = interfaceAddress.getBroadcast();
+                if (broadcast == null) {
+                    continue;
+                }
+                return broadcast;
+            }
+        }
+        return null;
+    }
+    
+    public static NetworkInterface getIpv6NetworkInterface() {
 
-		try {
+        try {
             for (Enumeration<NetworkInterface> en = NetworkInterface
                     .getNetworkInterfaces(); en.hasMoreElements(); ) {
                 NetworkInterface intf = en.nextElement();
@@ -278,16 +278,16 @@ public class IpUtils {
                     String hostAddress = inetAddress.getHostAddress();
                     LogUtils.i("hdb2  " + hostAddress);
                     if (inetAddress instanceof Inet6Address) {//ipv6
-						if (!hostAddress.startsWith("fe") && !hostAddress.startsWith("fc") && hostAddress.length() > 6) {
-							LogUtils.i("hdb2---ipv6:" + hostAddress);
-							return intf;
-						}
-					}else {//ipv4
-//						if (!"127.0.0.1".equalsIgnoreCase(hostAddress)) {
-//							LogUtils.i("hdb2---ipv4:" + hostAddress);
-//							return inetAddress;
-//						}
-					}
+                        if (!hostAddress.startsWith("fe") && !hostAddress.startsWith("fc") && hostAddress.length() > 6) {
+                            LogUtils.i("hdb2---ipv6:" + hostAddress);
+                            return intf;
+                        }
+                    }else {//ipv4
+//                        if (!"127.0.0.1".equalsIgnoreCase(hostAddress)) {
+//                            LogUtils.i("hdb2---ipv4:" + hostAddress);
+//                            return inetAddress;
+//                        }
+                    }
                 }
             }
         } catch (Exception ex) {
@@ -297,14 +297,14 @@ public class IpUtils {
 
     }
 
-	public static MulticastLock openWifiBrocast(Context context) {
-		WifiManager wifiManager = (WifiManager) context
-				.getSystemService(Context.WIFI_SERVICE);
-		MulticastLock multicastLock = wifiManager
-				.createMulticastLock("MediaRender");
-		if (multicastLock != null) {
-			multicastLock.acquire();
-		}
-		return multicastLock;
-	}
+    public static MulticastLock openWifiBrocast(Context context) {
+        WifiManager wifiManager = (WifiManager) context
+                .getSystemService(Context.WIFI_SERVICE);
+        MulticastLock multicastLock = wifiManager
+                .createMulticastLock("MediaRender");
+        if (multicastLock != null) {
+            multicastLock.acquire();
+        }
+        return multicastLock;
+    }
 }

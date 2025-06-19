@@ -13,12 +13,10 @@ import java.util.Arrays;
 
 import com.action.screenmirror.bean.MediaData;
 import com.action.screenmirror.utils.ThreadPoolManager;
-import com.android.internal.content.NativeLibraryHelper.Handle;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageParser.NewPermissionInfo;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.Image;
@@ -41,20 +39,20 @@ import android.view.Surface;
 import android.view.SurfaceView;
 
 public class DataCoder {
-	
-	private final static String MIME_TYPE = "video/avc"; // H.264 Advanced Video
 
-	// hdb
-	private final static int VIDEO_WIDTH = 1024;
-	private final static int VIDEO_HEIGHT = 600;
+    private final static String MIME_TYPE = "video/avc"; // H.264 Advanced Video
 
-	private final static int FRAME_RATE = 20;
-	private final static int FRAME_INTERVAL = 5;
-//	private final static int FRAME_BIT_RATE = 1600000;
-	private SurfaceView mSurfaceView;
-	private MediaCodec mCodec;
-	
-	public static final int NAL_SLICE = 1;
+    // hdb
+    private final static int VIDEO_WIDTH = 1024;
+    private final static int VIDEO_HEIGHT = 600;
+
+    private final static int FRAME_RATE = 20;
+    private final static int FRAME_INTERVAL = 5;
+//    private final static int FRAME_BIT_RATE = 1600000;
+    private SurfaceView mSurfaceView;
+    private MediaCodec mCodec;
+    
+    public static final int NAL_SLICE = 1;
     public static final int NAL_SLICE_DPA = 2;
     public static final int NAL_SLICE_DPB = 3;
     public static final int NAL_SLICE_DPC = 4;
@@ -64,19 +62,18 @@ public class DataCoder {
     public static final int NAL_PPS = 8;
     public static final int NAL_AUD = 9;
     public static final int NAL_FILLER = 12;
+
+    private final static int FRAME_BIT_RATE = 1000*1024;
+
+
+    private static final String MIMETYPE_VIDEO_AVC = "video/avc";
+
+    private static final String TAG = "DataCoder";
+
+//    protected static final int INFO_TRY_AGAIN_LATER = 0;
     
 
-	private final static int FRAME_BIT_RATE = 1000*1024;
-
-
-	private static final String MIMETYPE_VIDEO_AVC = "video/avc";
-
-	private static final String TAG = "DataCoder";
-
-//	protected static final int INFO_TRY_AGAIN_LATER = 0;
-	
-
-	private static final int COLOR_FORMAT = MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface; //COLOR_FormatSurface
+    private static final int COLOR_FORMAT = MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface; //COLOR_FormatSurface
 
     private MediaCodec.BufferInfo vBufferInfo = new MediaCodec.BufferInfo();
     private MediaCodec vEncoder;
@@ -86,95 +83,95 @@ public class DataCoder {
 //    private DisplayManager mDisplayManager;
     private MediaProjection mMediaProjection;
 //    private VirtualDisplay mVirtualDisplay;
-	private int mCount = 0;
-	private ArrayList<MediaData> bufferList = new ArrayList<MediaData>();
-	
-	private Handler mHandle;
-	public DataCoder(Handler handler) {
-		mHandle = handler;
-	}
-	
-	@SuppressLint("InlinedApi")
-	public void initDecoder(SurfaceView surfaceView) {
-		mSurfaceView = surfaceView;
-		try {
-			mCodec = MediaCodec.createDecoderByType(MIME_TYPE);
+    private int mCount = 0;
+    private ArrayList<MediaData> bufferList = new ArrayList<MediaData>();
+    
+    private Handler mHandle;
+    public DataCoder(Handler handler) {
+        mHandle = handler;
+    }
+    
+    @SuppressLint("InlinedApi")
+    public void initDecoder(SurfaceView surfaceView) {
+        mSurfaceView = surfaceView;
+        try {
+            mCodec = MediaCodec.createDecoderByType(MIME_TYPE);
 
-			final MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE,
-					VIDEO_WIDTH, VIDEO_HEIGHT);
-			format.setInteger(MediaFormat.KEY_BIT_RATE, FRAME_BIT_RATE);
-			format.setInteger(MediaFormat.KEY_FRAME_RATE, FRAME_RATE);
-			format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, FRAME_INTERVAL);
-			
-			format.setInteger(MediaFormat.KEY_COLOR_FORMAT, COLOR_FORMAT);
+            final MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE,
+                    VIDEO_WIDTH, VIDEO_HEIGHT);
+            format.setInteger(MediaFormat.KEY_BIT_RATE, FRAME_BIT_RATE);
+            format.setInteger(MediaFormat.KEY_FRAME_RATE, FRAME_RATE);
+            format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, FRAME_INTERVAL);
+            
+            format.setInteger(MediaFormat.KEY_COLOR_FORMAT, COLOR_FORMAT);
 
-			byte[] header_sps = { 0, 0, 0, 1, 39, 66, -32, 31, -115, 104, 4, 0, 77, -7, 97, 0, 0, 3, 0, 1, 0, 0, 3, 0, 50, 15, 16, 122, -128};
-			byte[] header_pps = {0, 0, 0, 1, 40, -50, 50, 72 };
+            byte[] header_sps = { 0, 0, 0, 1, 39, 66, -32, 31, -115, 104, 4, 0, 77, -7, 97, 0, 0, 3, 0, 1, 0, 0, 3, 0, 50, 15, 16, 122, -128};
+            byte[] header_pps = {0, 0, 0, 1, 40, -50, 50, 72 };
 
-			format.setByteBuffer("csd-0", ByteBuffer.wrap(header_sps));
-			format.setByteBuffer("csd-1", ByteBuffer.wrap(header_pps));
-			mCodec.configure(format, mSurfaceView.getHolder().getSurface(),
-					null, 0);
-			mCodec.start();
-			
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	int generateIndex = 0;
-	int TIMEOUT_USEC = 100;
-	
-	@SuppressWarnings("deprecation")
-	/*public synchronized boolean onFrame(byte[] buf, int offset, int length) {
-//		long startMs = System.currentTimeMillis();
-		// Get input buffer index
-		ByteBuffer[] inputBuffers = mCodec.getInputBuffers();
-		int inputBufferIndex = mCodec.dequeueInputBuffer(TIMEOUT_USEC);
-		
-		//if (inputBufferIndex >= 0) {
-		while (inputBufferIndex < 0) {
-			Log.e(TAG, "hdb---onFrame--w---inputBufferIndex  " + inputBufferIndex);
-			try {
-				Thread.sleep(20);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			inputBufferIndex = mCodec.dequeueInputBuffer(TIMEOUT_USEC);
-		}
-		if (inputBufferIndex >= 0) {
-			long ptsUsec = computePresentationTime(generateIndex);
-			ByteBuffer inputBuffer = inputBuffers[inputBufferIndex];
-			inputBuffer.clear();
-			inputBuffer.put(buf, offset, length);
-			mCodec.queueInputBuffer(inputBufferIndex, 0, length,
-					ptsUsec, 0);
-			generateIndex++;
-		} else {
-			Log.e(TAG, "hdb---onFrame-----inputBufferIndex  " + inputBufferIndex);
-			return false;
-		}
-		// Get output buffer index
-		MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
-		int outputBufferIndex = mCodec.dequeueOutputBuffer(bufferInfo, TIMEOUT_USEC);
+            format.setByteBuffer("csd-0", ByteBuffer.wrap(header_sps));
+            format.setByteBuffer("csd-1", ByteBuffer.wrap(header_pps));
+            mCodec.configure(format, mSurfaceView.getHolder().getSurface(),
+                    null, 0);
+            mCodec.start();
+            
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    int generateIndex = 0;
+    int TIMEOUT_USEC = 100;
+    
+    @SuppressWarnings("deprecation")
+    /*public synchronized boolean onFrame(byte[] buf, int offset, int length) {
+//        long startMs = System.currentTimeMillis();
+        // Get input buffer index
+        ByteBuffer[] inputBuffers = mCodec.getInputBuffers();
+        int inputBufferIndex = mCodec.dequeueInputBuffer(TIMEOUT_USEC);
+        
+        //if (inputBufferIndex >= 0) {
+        while (inputBufferIndex < 0) {
+            Log.e(TAG, "hdb---onFrame--w---inputBufferIndex  " + inputBufferIndex);
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            inputBufferIndex = mCodec.dequeueInputBuffer(TIMEOUT_USEC);
+        }
+        if (inputBufferIndex >= 0) {
+            long ptsUsec = computePresentationTime(generateIndex);
+            ByteBuffer inputBuffer = inputBuffers[inputBufferIndex];
+            inputBuffer.clear();
+            inputBuffer.put(buf, offset, length);
+            mCodec.queueInputBuffer(inputBufferIndex, 0, length,
+                    ptsUsec, 0);
+            generateIndex++;
+        } else {
+            Log.e(TAG, "hdb---onFrame-----inputBufferIndex  " + inputBufferIndex);
+            return false;
+        }
+        // Get output buffer index
+        MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+        int outputBufferIndex = mCodec.dequeueOutputBuffer(bufferInfo, TIMEOUT_USEC);
 
-		if (outputBufferIndex >= 0) {
-			mCodec.releaseOutputBuffer(outputBufferIndex, true);
-		}
-//		long value = (bufferInfo.presentationTimeUs / 1000) - (System.currentTimeMillis() - startMs);
-//		Log.i(TAG, "hdb---onFrame--outputBufferIndex:"+outputBufferIndex+" buf[0]"+buf[0]+" buf[1]"+buf[1]+" buf[2]"+buf[2]+" buf[3]"+buf[3]);
-		
-//		while (outputBufferIndex >= 0) {
-//			mCodec.releaseOutputBuffer(outputBufferIndex, true);
-//			outputBufferIndex = mCodec.dequeueOutputBuffer(bufferInfo, 0);
-////			Log.e(TAG, "hdb---onFrame---while--outputBufferIndex  " + outputBufferIndex);
-//		}
-		return true;
-	}*/
-	
-	
-	public void onFrame(byte[] buf,int offset, int length) {
+        if (outputBufferIndex >= 0) {
+            mCodec.releaseOutputBuffer(outputBufferIndex, true);
+        }
+//        long value = (bufferInfo.presentationTimeUs / 1000) - (System.currentTimeMillis() - startMs);
+//        Log.i(TAG, "hdb---onFrame--outputBufferIndex:"+outputBufferIndex+" buf[0]"+buf[0]+" buf[1]"+buf[1]+" buf[2]"+buf[2]+" buf[3]"+buf[3]);
+        
+//        while (outputBufferIndex >= 0) {
+//            mCodec.releaseOutputBuffer(outputBufferIndex, true);
+//            outputBufferIndex = mCodec.dequeueOutputBuffer(bufferInfo, 0);
+////            Log.e(TAG, "hdb---onFrame---while--outputBufferIndex  " + outputBufferIndex);
+//        }
+        return true;
+    }*/
+    
+    
+    public void onFrame(byte[] buf,int offset, int length) {
         ByteBuffer[] inputBuffers = mCodec.getInputBuffers();
         int inputBufferIndex = mCodec.dequeueInputBuffer(0);
         if (inputBufferIndex >= 0) {
@@ -188,20 +185,20 @@ public class DataCoder {
         MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
         int outputBufferIndex = mCodec.dequeueOutputBuffer(bufferInfo,0);
         while (outputBufferIndex >= 0) {
-        	mCodec.releaseOutputBuffer(outputBufferIndex, true);
+            mCodec.releaseOutputBuffer(outputBufferIndex, true);
             outputBufferIndex = mCodec.dequeueOutputBuffer(bufferInfo, 0);
         }
     }
-	
-	private static long computePresentationTime(int frameIndex) {
+    
+    private static long computePresentationTime(int frameIndex) {
         return 132 + frameIndex * 1000000 / FRAME_RATE;
     }
-	
-	
-	private DataOutputStream mDataOutputStream;
-	public void start(DataOutputStream dataOutputStream, MediaProjection mediaProjection) {
-		mDataOutputStream = dataOutputStream;
-		mMediaProjection = mediaProjection;
+    
+    
+    private DataOutputStream mDataOutputStream;
+    public void start(DataOutputStream dataOutputStream, MediaProjection mediaProjection) {
+        mDataOutputStream = dataOutputStream;
+        mMediaProjection = mediaProjection;
         try {
             prepareVideoEncoder();
             startVideoEncode();
@@ -217,7 +214,7 @@ public class DataCoder {
             vEncoder.stop();
         }
         if(mMediaProjection != null){
-        	mMediaProjection = null;
+            mMediaProjection = null;
         } 
        // if(mMediaProjection!= null) mMediaProjection.stop();
     }
@@ -245,18 +242,18 @@ public class DataCoder {
 //        mVirtualDisplay = mDisplayManager.createVirtualDisplay("-display", VIDEO_WIDTH, VIDEO_HEIGHT, 1,
 //                surface, DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR);//VIRTUAL_DISPLAY_FLAG_PUBLIC
         mMediaProjection.createVirtualDisplay("ScreenRecorder-display0", VIDEO_WIDTH, VIDEO_HEIGHT, 1,
-        		DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC, surface, null, null);
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC, surface, null, null);
         vEncoder = vencoder;
         
         /*mReader.setOnImageAvailableListener(new OnImageAvailableListener() {
-			
-			@Override
-			public void onImageAvailable(ImageReader imageReader) {
-				Image mImage = mReader.acquireLatestImage();
-				Log.i(TAG, "hdb---onImageAvailable---"+mImage.getWidth()+"  "+mImage.getHeight());
-				mImage.close();
-			}
-		}, null);*/
+            
+            @Override
+            public void onImageAvailable(ImageReader imageReader) {
+                Image mImage = mReader.acquireLatestImage();
+                Log.i(TAG, "hdb---onImageAvailable---"+mImage.getWidth()+"  "+mImage.getHeight());
+                mImage.close();
+            }
+        }, null);*/
     }
 
     public void startVideoEncode() {
@@ -285,15 +282,15 @@ public class DataCoder {
                         e.printStackTrace();
                         break;
                     }*/
-                	
-                	if (bufferList.size() > 0) {
-//                		Log.i(TAG, "hdb--run--");
-                		MediaData mediaData = getData();
-                		if (mediaData != null) {
-                			onEncodedAvcFrame(mediaData.getOutputBuffer(), mediaData.getBufferInfo(),mediaData.getIndex());
-						}
-						
-					}
+                    
+                    if (bufferList.size() > 0) {
+//                        Log.i(TAG, "hdb--run--");
+                        MediaData mediaData = getData();
+                        if (mediaData != null) {
+                            onEncodedAvcFrame(mediaData.getOutputBuffer(), mediaData.getBufferInfo(),mediaData.getIndex());
+                        }
+                        
+                    }
                 }
             }
         };
@@ -304,67 +301,67 @@ public class DataCoder {
 //        vEncoder.PARAMETER_KEY_REQUEST_SYNC_FRAME
         
         vEncoder.setCallback(new Callback() {
-			
-			@Override
-			public void onOutputFormatChanged(MediaCodec arg0, MediaFormat arg1) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void onOutputBufferAvailable(MediaCodec mediaCodec, int index, BufferInfo bufferInfo) {
-				ByteBuffer outputBuffer = vEncoder.getOutputBuffer(index);
-				Log.i(TAG, "hdb--onOutputBufferAvailable--");
-				addData(outputBuffer, bufferInfo,index);
-				
-				/*ThreadPoolManager.getInstance().execute(new Runnable() {
-					
-					@Override
-					public void run() {
-						onEncodedAvcFrame(outputBuffer, bufferInfo);
-						vEncoder.releaseOutputBuffer(index, false);
-					}
-				});*/
-				
-				
-			}
-			
-			@Override
-			public void onInputBufferAvailable(MediaCodec arg0, int arg1) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void onError(MediaCodec arg0, CodecException arg1) {
-				Log.i(TAG, "hdb---onError--");
-				
-			}
-		});
+            
+            @Override
+            public void onOutputFormatChanged(MediaCodec arg0, MediaFormat arg1) {
+                // TODO Auto-generated method stub
+                
+            }
+            
+            @Override
+            public void onOutputBufferAvailable(MediaCodec mediaCodec, int index, BufferInfo bufferInfo) {
+                ByteBuffer outputBuffer = vEncoder.getOutputBuffer(index);
+                Log.i(TAG, "hdb--onOutputBufferAvailable--");
+                addData(outputBuffer, bufferInfo,index);
+                
+                /*ThreadPoolManager.getInstance().execute(new Runnable() {
+                    
+                    @Override
+                    public void run() {
+                        onEncodedAvcFrame(outputBuffer, bufferInfo);
+                        vEncoder.releaseOutputBuffer(index, false);
+                    }
+                });*/
+                
+                
+            }
+            
+            @Override
+            public void onInputBufferAvailable(MediaCodec arg0, int arg1) {
+                // TODO Auto-generated method stub
+                
+            }
+            
+            @Override
+            public void onError(MediaCodec arg0, CodecException arg1) {
+                Log.i(TAG, "hdb---onError--");
+                
+            }
+        });
     }
     
     private Object mLock = new Object();
     private void addData(ByteBuffer outputBuffer,BufferInfo bufferInfo,int index){
-    	synchronized (mLock) {
-//    		Log.i(TAG, "hdb--addData--");
-    		bufferList.add(new MediaData(bufferInfo, outputBuffer,index));
-		}
+        synchronized (mLock) {
+//            Log.i(TAG, "hdb--addData--");
+            bufferList.add(new MediaData(bufferInfo, outputBuffer,index));
+        }
     }
     
     private MediaData getData(){
-    	synchronized (mLock) {
-    		if (bufferList.size() >=0) {
-//    			Log.i(TAG, "hdb--getData--bufferList:"+bufferList.size());
-    			return bufferList.remove(0);
-			}
-    		return null;
-		}
+        synchronized (mLock) {
+            if (bufferList.size() >=0) {
+//                Log.i(TAG, "hdb--getData--bufferList:"+bufferList.size());
+                return bufferList.remove(0);
+            }
+            return null;
+        }
     }
 
     private synchronized void onEncodedAvcFrame(ByteBuffer bb, MediaCodec.BufferInfo vBufferInfo,int index) {
-    	
-    //	Log.i(TAG, "hdb----b0:"+bb.get(0)+"b1:"+bb.get(1)+"b2:"+bb.get(2)+"b3:"+bb.get(3)+"b4:"+bb.get(4));
-//    	Log.i(TAG, "hdb---onEncodedAvcFrame--size:"+vBufferInfo.size );
+        
+    //    Log.i(TAG, "hdb----b0:"+bb.get(0)+"b1:"+bb.get(1)+"b2:"+bb.get(2)+"b3:"+bb.get(3)+"b4:"+bb.get(4));
+//        Log.i(TAG, "hdb---onEncodedAvcFrame--size:"+vBufferInfo.size );
         int offset = 4;
         //判断帧的类型
         if (bb.get(2) == 0x01) {
@@ -376,7 +373,7 @@ public class DataCoder {
             //打印发现这里将 SPS帧和 PPS帧合在了一起发送
             // SPS为 [4，len-8]
             // PPS为后4个字节
-        	final byte[] bytes1 = new byte[vBufferInfo.size];
+            final byte[] bytes1 = new byte[vBufferInfo.size];
             bb.get(bytes1);
             Log.d(TAG, "hdb---sps:" + Arrays.toString(bytes1));
           
@@ -387,10 +384,10 @@ public class DataCoder {
             
             byte flag;
             if ((vBufferInfo.flags & MediaCodec.BUFFER_FLAG_KEY_FRAME) == 1) {
-				flag = 1;
-			}else {
-				flag = 0;
-			}
+                flag = 1;
+            }else {
+                flag = 0;
+            }
             long presentationTimeUs = vBufferInfo.presentationTimeUs;
             int flags = vBufferInfo.flags;
             int offset2 = vBufferInfo.offset;
@@ -404,73 +401,73 @@ public class DataCoder {
     }
     
     private void onImageData(byte[] buf, byte flag, byte[] timeUs) {
-//		Log.v(TAG, "onImageData  " + buf.length + "  ------  " + mDataOutputStream);
-		if (null != mDataOutputStream) {
-			try {
-				byte[] bytes = new byte[buf.length + 3 + 5];
-				byte[] head = intToBuffer(buf.length);
-				bytes[0] = flag;
-				System.arraycopy(timeUs, 0, bytes, 1, timeUs.length);
-				System.arraycopy(head, 0, bytes, 5, head.length);
-				System.arraycopy(buf, 0, bytes, 8, buf.length);
-				mDataOutputStream.write(bytes);
-				mDataOutputStream.flush();
-				bytes = null;
-				head = null;
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
+//        Log.v(TAG, "onImageData  " + buf.length + "  ------  " + mDataOutputStream);
+        if (null != mDataOutputStream) {
+            try {
+                byte[] bytes = new byte[buf.length + 3 + 5];
+                byte[] head = intToBuffer(buf.length);
+                bytes[0] = flag;
+                System.arraycopy(timeUs, 0, bytes, 1, timeUs.length);
+                System.arraycopy(head, 0, bytes, 5, head.length);
+                System.arraycopy(buf, 0, bytes, 8, buf.length);
+                mDataOutputStream.write(bytes);
+                mDataOutputStream.flush();
+                bytes = null;
+                head = null;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
-	public static byte[] intToBuffer(int value) {
-		byte[] src = new byte[3];
-		src[2] = (byte) ((value >> 16) & 0xFF);
-		src[1] = (byte) ((value >> 8) & 0xFF);
-		src[0] = (byte) (value & 0xFF);
-		return src;
-	}
-	
-	public static byte[] longToBuffer(long value) {
-		byte[] src = new byte[4];
-		src[3] = (byte) ((value >> 24) & 0xFF);
-		src[2] = (byte) ((value >> 16) & 0xFF);
-		src[1] = (byte) ((value >> 8) & 0xFF);
-		src[0] = (byte) (value & 0xFF);
-		return src;
-	}
-	
-	@SuppressLint("InlinedApi") public void requestIFarme(){
-		Log.i(TAG, "hdb--requestIFarme--vEncoder:"+vEncoder);
-		if (null != vEncoder) {//request-sync  //bool AMessage::findAsInt64(const char *name, int64_t *value)
-			Bundle params = new Bundle();
-			params.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME, 0);
-			Log.i(TAG, "hdb--requestIFarme-");
-			vEncoder.setParameters(params);
-		}
-		
-	}
-	
-//	int64_t timeUs;
+    public static byte[] intToBuffer(int value) {
+        byte[] src = new byte[3];
+        src[2] = (byte) ((value >> 16) & 0xFF);
+        src[1] = (byte) ((value >> 8) & 0xFF);
+        src[0] = (byte) (value & 0xFF);
+        return src;
+    }
+    
+    public static byte[] longToBuffer(long value) {
+        byte[] src = new byte[4];
+        src[3] = (byte) ((value >> 24) & 0xFF);
+        src[2] = (byte) ((value >> 16) & 0xFF);
+        src[1] = (byte) ((value >> 8) & 0xFF);
+        src[0] = (byte) (value & 0xFF);
+        return src;
+    }
+    
+    @SuppressLint("InlinedApi") public void requestIFarme(){
+        Log.i(TAG, "hdb--requestIFarme--vEncoder:"+vEncoder);
+        if (null != vEncoder) {//request-sync  //bool AMessage::findAsInt64(const char *name, int64_t *value)
+            Bundle params = new Bundle();
+            params.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME, 0);
+            Log.i(TAG, "hdb--requestIFarme-");
+            vEncoder.setParameters(params);
+        }
+        
+    }
+    
+//    int64_t timeUs;
 //    CHECK(buffer->meta()->findInt64("timeUs", &timeUs));
-	
-	
-	private static String getByteStringHex(byte[] data, int len) {
-		char[] DIGITS_UPPER = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
-		if (data.length < len) {
-			return "wrong length!";
-		}
-		StringBuffer ret = new StringBuffer(512);
-		for (int i = 0; i < len; i++) {
-			byte hf = (byte) ((data[i] >> 4) & 0x0F);
-			byte lf = (byte) (data[i] & 0x0F);
-			ret.append(DIGITS_UPPER[hf]);
-			ret.append(DIGITS_UPPER[lf]);
-			if ((i + 1) < len)
-				ret.append(",");
-		}
-		return ret.toString();
-	}
+    
+    
+    private static String getByteStringHex(byte[] data, int len) {
+        char[] DIGITS_UPPER = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+        if (data.length < len) {
+            return "wrong length!";
+        }
+        StringBuffer ret = new StringBuffer(512);
+        for (int i = 0; i < len; i++) {
+            byte hf = (byte) ((data[i] >> 4) & 0x0F);
+            byte lf = (byte) (data[i] & 0x0F);
+            ret.append(DIGITS_UPPER[hf]);
+            ret.append(DIGITS_UPPER[lf]);
+            if ((i + 1) < len)
+                ret.append(",");
+        }
+        return ret.toString();
+    }
 
 
 }

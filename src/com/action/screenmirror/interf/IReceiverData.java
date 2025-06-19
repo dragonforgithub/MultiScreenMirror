@@ -5,5 +5,5 @@ import java.util.ArrayList;
 import com.action.screenmirror.bean.DeviceInfo;
 
 public interface IReceiverData {
-	void onReveiver(ArrayList<DeviceInfo> deviceInfos);
+    void onReveiver(ArrayList<DeviceInfo> deviceInfos);
 }

@@ -1,6 +1,6 @@
 package com.action.screenmirror.interf;
 
 public interface IWifiState {
-	void connect();
-	void disconnect();
+    void connect();
+    void disconnect();
 }

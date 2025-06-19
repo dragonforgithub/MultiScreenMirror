@@ -4,5 +4,5 @@ import com.action.screenmirror.bean.SocketMole;
 
 public interface IDisconnectCallback {
 
-	void onDisconnect(SocketMole socketMole);
+    void onDisconnect(SocketMole socketMole);
 }

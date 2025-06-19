@@ -35,12 +35,11 @@ public class DeviceAdapter extends BaseAdapter {
     }
 
     public void setDeviceInfos(List<DeviceInfo> remoteDeviceInfos) {
-//    	Log.i(TAG, "hdb--setDeviceInfos--remoteDeviceInfos:"+remoteDeviceInfos.size());
-//        this.deviceInfos.clear();
-//        this.deviceInfos.addAll(remoteDeviceInfos);
-    	this.deviceInfos = remoteDeviceInfos;
+//      Log.i(TAG, "hdb--setDeviceInfos--remoteDeviceInfos:"+remoteDeviceInfos.size());
+//      this.deviceInfos.clear();
+//      this.deviceInfos.addAll(remoteDeviceInfos);
+        this.deviceInfos = remoteDeviceInfos;
     }
-
 
     public List<DeviceInfo> getDeviceInfos() {
         return deviceInfos;
@@ -83,12 +82,12 @@ public class DeviceAdapter extends BaseAdapter {
             Log.i(TAG, "hdb-getView--connectState:" + connectState);
             Spannable span;
             if (connectState.length() > 2) {
-            	span = new SpannableString(name + "\n" + connectState);
-            	span.setSpan(new AbsoluteSizeSpan(29), name.length(),  name.length()+connectState.length()+1, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
-			}else {
-				span = new SpannableString(name + "\n" + address);
-				span.setSpan(new AbsoluteSizeSpan(29), name.length(),  name.length()+address.length()+1, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
-			}
+                span = new SpannableString(name + "\n" + connectState);
+                span.setSpan(new AbsoluteSizeSpan(29), name.length(),  name.length()+connectState.length()+1, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+            }else {
+                span = new SpannableString(name + "\n" + address);
+                span.setSpan(new AbsoluteSizeSpan(29), name.length(),  name.length()+address.length()+1, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+            }
             
             //让设备名称和IP地址有所区别
             

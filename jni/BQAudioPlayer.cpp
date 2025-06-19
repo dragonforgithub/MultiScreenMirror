@@ -32,6 +32,8 @@ bool BQAudioPlayer::init() {
                                   (SLuint32) mSampleFormat, (SLuint32) mSampleFormat,
                                   mChannels == 2 ? 0 : SL_SPEAKER_FRONT_CENTER,
                                   SL_BYTEORDER_LITTLEENDIAN};
+    */
+
     /*
      * Enable Fast Audio when possible:  once we set the same rate to be the native, fast audio path
      * will be triggered
@@ -66,8 +68,6 @@ bool BQAudioPlayer::init() {
                                                         &audioSrc, &audioSink,
                                                         mSampleRate ? 2 : 3, ids, req);
 
-    /*----------------------------------------*/
-
     /*SLDataFormat_PCM format_pcm = {//设置PCM播放时的属性
             SL_DATAFORMAT_PCM,//播放pcm格式的数据
             2,//2个声道（立体声）
@@ -81,7 +81,8 @@ bool BQAudioPlayer::init() {
 
     SLDataLocator_OutputMix outputMix = {SL_DATALOCATOR_OUTPUTMIX,outputMixObject};
     SLDataSink audioSink = {&outputMix,NULL};
-    /*-------------------------------------------------*/
+    */
+
     if (result != SL_RESULT_SUCCESS) {
         LOGE("hdb---CreateAudioPlayer failed: %d", result);
         return false;

@@ -16,7 +16,7 @@ JNIEXPORT void JNICALL
 Java_com_action_screenmirror_audio_AudioTrack_startSL(JNIEnv *env, jclass type,
                                                                 jint sampleRate, jint samleFormat,
                                                                 jint channels) {
-	LOGE("hdb---startSL--------");
+    LOGE("hdb---startSL--------");
     if (bqAudioPlayer) {
         bqAudioPlayer->release();
         delete bqAudioPlayer;
@@ -32,7 +32,7 @@ Java_com_action_screenmirror_audio_AudioTrack_startSL(JNIEnv *env, jclass type,
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_action_screenmirror_audio_AudioTrack_writeSL(JNIEnv *env, jclass type,jbyteArray data_, jint length) {
-	//LOGE("hdb---writeSL--------bqAudioPlayer=%d",bqAudioPlayer);
+    //LOGE("hdb---writeSL--------bqAudioPlayer=%d",bqAudioPlayer);
     if (!bqAudioPlayer) {
         return;
     }
@@ -44,7 +44,7 @@ Java_com_action_screenmirror_audio_AudioTrack_writeSL(JNIEnv *env, jclass type,j
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_action_screenmirror_audio_AudioTrack_stopSL(JNIEnv *env, jclass type) {
-	LOGE("hdb---stopSL--------");
+    LOGE("hdb---stopSL--------");
     if (bqAudioPlayer) {
         bqAudioPlayer->release();
         delete bqAudioPlayer;

@@ -2,45 +2,44 @@ package com.action.screenmirror.bean;
 
 public class DeviceInfo {
 
-	public static final int CONNECT_UNKNOW = 1;
-	public static final int CONNECT_START = 2;
-	public static final int CONNECT_FAIL = 3;
-	public static final int CONNECT_SUCCESS = 4;
-	public static final int CONNECT_TIMEOUT = 5;
-	
+    public static final int CONNECT_UNKNOW = 1;
+    public static final int CONNECT_START = 2;
+    public static final int CONNECT_FAIL = 3;
+    public static final int CONNECT_SUCCESS = 4;
+    public static final int CONNECT_TIMEOUT = 5;
+
     private String ipAddress;
     private String Name;
     private long time;
     private String ip6Address;
-    
+
     private int connectState = CONNECT_UNKNOW;
-    
 
     public int getConnectState() {
-		return connectState;
-	}
+        return connectState;
+    }
 
-	public void setConnectState(int connectState) {
-		this.connectState = connectState;
-	}
-	
-	public String getConnectStateString(){
-		String state = "";
-		if (connectState == CONNECT_UNKNOW) {
-			state = "";
-		}else if (connectState == CONNECT_START) {
-			state = "Connecting";
-		}else if (connectState == CONNECT_SUCCESS) {
-			state = "Connected";
-		}else if (connectState == CONNECT_FAIL) {
-			state = "";
-		}else if (connectState == CONNECT_TIMEOUT) {
-			state = "";
-		}
-		return state;
-	}
+    public void setConnectState(int connectState) {
+        this.connectState = connectState;
+    }
 
-	public DeviceInfo(String ipAddress, String name) {
+    public String getConnectStateString(){
+        String state = "";
+        if (connectState == CONNECT_UNKNOW) {
+            state = "";
+        }else if (connectState == CONNECT_START) {
+            state = "Connecting";
+        }else if (connectState == CONNECT_SUCCESS) {
+            state = "Connected";
+        }else if (connectState == CONNECT_FAIL) {
+            state = "";
+        }else if (connectState == CONNECT_TIMEOUT) {
+            state = "";
+        }
+        return state;
+    }
+
+    public DeviceInfo(String ipAddress, String name) {
         super();
         this.ipAddress = ipAddress;
         this.connectState = CONNECT_UNKNOW;
