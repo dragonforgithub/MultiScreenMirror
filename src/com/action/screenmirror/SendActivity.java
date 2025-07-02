@@ -44,6 +44,7 @@ public class SendActivity extends Activity{
 
     @Override
     protected void onCreate(Bundle arg0) {
+        Log.i(TAG, "====== onCreate ======");
         super.onCreate(arg0);
         setContentView(R.layout.activity_send);
         instance = this;
@@ -157,16 +158,15 @@ public class SendActivity extends Activity{
             Intent createScreenCaptureIntent = mProjectionManager.createScreenCaptureIntent();
             startActivityForResult(createScreenCaptureIntent, REQUEST_CODE);
         }
-        
     }
-    
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Log.i(TAG, "hdb---requestRecord--requestCode:"+requestCode+"  resultCode:"+resultCode);
         if (requestCode == REQUEST_CODE) {
             MediaProjection mediaProjection = mProjectionManager.getMediaProjection(resultCode, data);
-            
+
             SendServer server = SendServer.getInstance();
             if (server != null) {
                 server.startReceord(mediaProjection);
@@ -176,12 +176,14 @@ public class SendActivity extends Activity{
     
     @Override
     protected void onResume() {
+        Log.i(TAG, "====== onResume ======");
         super.onResume();
         requestConnect = false;
         getWifiState();
     }
     
     private void getWifiState(){
+        Log.i(TAG, "====== getWifiState ======");
         ConnectivityManager mConnectivityManager = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo wifiInfo = mConnectivityManager
                 .getNetworkInfo(ConnectivityManager.TYPE_WIFI);
@@ -243,6 +245,7 @@ public class SendActivity extends Activity{
     
     @Override
     protected void onStop() {
+        Log.i(TAG, "====== onStop ======");
         super.onStop();
         onWifiDisconnect();
     }
@@ -278,6 +281,7 @@ public class SendActivity extends Activity{
 
     @Override
     protected void onDestroy() {
+    Log.i(TAG, "====== onDestroy ======");
         if (Config.useUdp) {
             SendServer server = SendServer.getInstance();
             if (server != null) {

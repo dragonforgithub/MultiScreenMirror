@@ -151,17 +151,16 @@ public class UdpSocketReceiver {
                         int pckIndex = ByteUtils.bufferToInt(pckIndexb);
                         int pLength = ByteUtils.bufferToInt(lengthb);
                         int length = ByteUtils.bufferToInt(lengthc);
-                        
+
                         byte[] buf = new byte[length];
                         System.arraycopy(data, 11, buf, 0, buf.length);
-                        
-                        Log.i(TAG, "hdb-------index:"+index+"  count:"+count+"  pckIndex:"+pckIndex+"  length:"+length+"  pLength:"+pLength);
+
+                        //Log.i(TAG, "hdb-------index:"+index+"  count:"+count+"  pckIndex:"+pckIndex+"  length:"+length+"  pLength:"+pLength);
                         ByteList byteList = new ByteList(buf, index, count, pckIndex, length, pLength);
                         byte[] bFrame = null;
-                        
+
                         if (currentIndex == -1) {
                             currentIndex = pckIndex;
-                            
                         }
                         if (currentIndex != pckIndex) {
                             currentIndex = pckIndex;
@@ -219,7 +218,7 @@ public class UdpSocketReceiver {
                     
                     System.arraycopy(buf, 0, data, index * 1000, lenght);
                 }
-                Log.i(TAG, "hdb----getBuf----get--ok--currentIndex:"+currentIndex);
+                //Log.i(TAG, "hdb----getBuf----get--ok--currentIndex:"+currentIndex);
                 mCurrentLists.clear();
                 return data;
             }
@@ -277,15 +276,14 @@ public class UdpSocketReceiver {
                             mHandler.sendEmptyMessage(RECEIVER_DATA);
                         }
 //                        Log.i(TAG, "hdb--receiverConnectInfo--length:" + pack.getLength());
-                        
+
                         byte[] data = pack.getData();
                         int index = data[0];
                         int count = data[1];
                         byte[] pckIndexb = new byte[3];
                         System.arraycopy(data, 2, pckIndexb, 0, pckIndexb.length);
                         int pckIndex = ByteUtils.bufferToInt(pckIndexb);
-                        
-                        Log.i(TAG, "hdb---receiverUdpPckg----index:"+index+"  count:"+count+"  pckIndex:"+pckIndex);
+                        //Log.i(TAG, "hdb---receiverUdpPckg----index:"+index+"  count:"+count+"  pckIndex:"+pckIndex);
                     }
 
                 } catch (Exception e) {
